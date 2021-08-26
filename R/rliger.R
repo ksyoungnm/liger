@@ -3160,6 +3160,8 @@ quantile_norm.liger <- function(
 #' @param nIterations Maximal number of iterations per random start. (default 100)
 #' @param random.seed Seed of the random number generator. (default 1)
 #' @param verbose Print messages (TRUE by default)
+#' @param use.raw Whether to use un-aligned cell factor loadings (H matrices)
+#' @param dims.use Factors to use for community detection (default 1:ncol(H.norm)).
 #'
 #' @return \code{liger} object with refined 'clusters' slot set.
 #'
@@ -3171,21 +3173,25 @@ quantile_norm.liger <- function(
 #' }
 #'
 
-louvainCluster <- function(object, resolution = 1.0, k = 20, prune = 1 / 15, eps = 0.1, nRandomStarts = 10,
-                           nIterations = 100, random.seed = 1, verbose = TRUE) {
+louvainCluster <- function(object, resolution = 1.0, k = 20, prune = 1 / 15, eps = 0.1,
+                           nRandomStarts = 10, nIterations = 100, random.seed = 1,
+                           verbose = TRUE, use.raw = FALSE, dims.use = 1:ncol(object@H.norm)) {
   output_path <- paste0('edge_', sub('\\s', '_', Sys.time()), '.txt')
   output_path = sub(":","_",output_path)
   output_path = sub(":","_",output_path)
-  if (dim(object@H.norm)[1] == 0){
+  if (dim(object@H.norm)[1] == 0 || use.raw){
     if (verbose) {
       message("Louvain Clustering on unnormalized cell factor loadings.")
     }
-    knn <- RANN::nn2(Reduce(rbind, object@H), k = k, eps = eps)
+    if (identical(dims.use,1:0)) {
+      dims.use <- 1:ncol(object@H[[1]])
+    }
+    knn <- RANN::nn2(Reduce(rbind, object@H)[, dims.use], k = k, eps = eps)
   } else {
     if (verbose) {
       message("Louvain Clustering on quantile normalized cell factor loadings.")
     }
-    knn <- RANN::nn2(object@H.norm, k = k, eps = eps)
+    knn <- RANN::nn2(object@H.norm[, dims.use], k = k, eps = eps)
   }
   snn <- ComputeSNN(knn$nn.idx, prune = prune)
   WriteEdgeFile(snn, output_path, display_progress = FALSE)

@@ -13,7 +13,9 @@ louvainCluster(
   nRandomStarts = 10,
   nIterations = 100,
   random.seed = 1,
-  verbose = TRUE
+  verbose = TRUE,
+  use.raw = FALSE,
+  dims.use = 1:ncol(object@H.norm)
 )
 }
 \arguments{
@@ -39,6 +41,10 @@ prune everything). (default 1/15)}
 \item{random.seed}{Seed of the random number generator. (default 1)}
 
 \item{verbose}{Print messages (TRUE by default)}
+
+\item{use.raw}{Whether to use un-aligned cell factor loadings (H matrices)}
+
+\item{dims.use}{Factors to use for community detection (default 1:ncol(H.norm)).}
 }
 \value{
 \code{liger} object with refined 'clusters' slot set.
